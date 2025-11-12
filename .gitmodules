@@ -1,0 +1,3 @@
+[submodule "source"]
+	path = source
+	url = https://gitee.com/simplepxy/hexo_blog.git
