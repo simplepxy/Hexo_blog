@@ -39,4 +39,5 @@ jobs:
 
     - name: rsync images
       run: |
-        rsync -av /source/images /asset/images/
+        echo `pwd`
+        cp -rfv source/images/ asset/images/
