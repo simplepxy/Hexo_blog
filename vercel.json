@@ -25,7 +25,7 @@
           "value": "*"
         }
       ]
-    }
+    },
 	{
       "source": "/images/(.*)", // 针对特定资源路径（如果你的图片在 /images/ 目录下）
       "headers": [
