@@ -1,38 +1,67 @@
-name: 'Submodules Sync'
- 
+name: "Submodules Sync"
+
 on:
   schedule:
-  - cron: "0 2 * * *"
+    - cron: "0 2 * * *"
   # Allows you to run this workflow manually from the Actions tab or through HTTP API
   workflow_dispatch:
- 
+
 jobs:
   sync:
-    name: 'Submodules Sync'
+    name: "Submodules Sync"
     runs-on: ubuntu-latest
- 
+
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
- 
+
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        token: ${{ secrets.CI_TOKEN }}
-        submodules: true
- 
-    # Update references
-    - name: Git Sumbodule Update
-      run: |
-        git pull --recurse-submodules
-        git submodule update --remote --recursive
- 
-    - name: Commit update
-      run: |
-        git config --global user.name 'Git bot'
-        git config --global user.email 'bot@noreply.github.com'
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-        git commit -am "Auto updated submodule references" && git push || echo "No changes to commit"
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.CI_TOKEN }}
+          submodules: true
+
+      # Update references
+      - name: Git Sumbodule Update
+        run: |
+          git pull --recurse-submodules
+          git submodule update --remote --recursive
+
+      - name: copy files
+        run: |
+          # 定义源文件夹和目标文件夹路径
+          SOURCE_DIR="source/images/"  # 替换为您的源文件夹路径
+          DEST_DIR="asset/images/" # 替换为您的目标文件夹路径
+
+          # 检查源文件夹是否存在
+          if [ -d "$SOURCE_DIR" ]; then
+            echo "正在移动文件夹 $SOURCE_DIR 到 $DEST_DIR"
+            # 使用 'mv' 命令移动文件夹。如果目标文件夹不存在，mv 会创建它
+            cp -rvf "$SOURCE_DIR" "$DEST_DIR"
+            echo "移动完成"
+          else
+            echo "源文件夹 $SOURCE_DIR 不存在，跳过移动。"
+          fi
+
+      - name: commit update
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          # 提交消息
+          commit_message: "由 GitHub Actions 自动移动文件夹: ${{ env.SOURCE_DIR }} -> ${{ env.DEST_DIR }}"
+          # 仅提交被更改/删除的文件
+          commit_options: "--no-verify --signoff"
+          # 要提交的文件路径，默认是所有更改
+          file_pattern: "**/*"
+          # GitHub Actions 默认 token 拥有推送权限
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+
+      # - name: Commit update
+      #   run: |
+      #     git config --global user.name 'Git bot'
+      #     git config --global user.email 'bot@noreply.github.com'
+      #     git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      #     git commit -am "Auto updated submodule references" && git push || echo "No changes to commit"
